@@ -7,10 +7,12 @@ namespace BusinessLogic
 	public class PointsCalculator
 	{
 		private readonly IReadOnlyList<FramePoints> _game;
+		private readonly PointsCalculationStrategy _calculationStrategy;
 
 		public PointsCalculator(IReadOnlyList<FramePoints> game)
 		{
 			_game = game;
+			_calculationStrategy = new PointsCalculationStrategy(game);
 		}
 
 		public int GetPointsUpTo(int frameNumber)
@@ -19,9 +21,21 @@ namespace BusinessLogic
 				throw new ArgumentOutOfRangeException($"Frame number should be from 1 to 10, but received {frameNumber}");
 
 			if (frameNumber == 1)
-				return GetCurrentFramePoints(frameNumber);
+				return _calculationStrategy.GetCurrentFramePoints(frameNumber);
 
-			return GetCurrentFramePoints(frameNumber) + GetPointsUpTo(frameNumber - 1);
+			return _calculationStrategy.GetCurrentFramePoints(frameNumber) + GetPointsUpTo(frameNumber - 1);
+		}
+
+
+	}
+
+	internal sealed class PointsCalculationStrategy
+	{
+		private readonly IReadOnlyList<FramePoints> _game;
+
+		public PointsCalculationStrategy(IReadOnlyList<FramePoints> game)
+		{
+			_game = game;
 		}
 
 		public int GetCurrentFramePoints(int frameNumber)
@@ -30,34 +44,48 @@ namespace BusinessLogic
 			return _pointsStrategy.First(s => s.Key(currentFrame)).Value(frameNumber, _game);
 		}
 
-		private readonly IReadOnlyDictionary<Func<FramePoints, bool>, Func<int, IReadOnlyList<FramePoints>, int>> _pointsStrategy
-			= new Dictionary<Func<FramePoints, bool>, Func<int, IReadOnlyList<FramePoints>, int>>
+		private const int AllSkittles = 10;
+		private readonly IReadOnlyDictionary<Func<FramePoints, bool>, Func<int, IReadOnlyList<FramePoints>, int>>
+			_pointsStrategy = new Dictionary<Func<FramePoints, bool>, Func<int, IReadOnlyList<FramePoints>, int>>
 			{
-				[fp => fp.FirstRun == SkittleAmount] = StrikePoints,
-				[fp => fp.FirstRun + fp.SecondRun == SkittleAmount] = SparePoints,
+				[fp => fp.FirstRun == AllSkittles] = StrikePoints,
+				[fp => fp.FirstRun + fp.SecondRun == AllSkittles] = SparePoints,
 				[fp => true] = StandardPoints
 			};
 
-		private const int SkittleAmount = 10;
-
 		private static int StrikePoints(int frameNumber, IReadOnlyList<FramePoints> game)
 		{
-			if (frameNumber == game.Count)
-				return SkittleAmount + game.Last().ThirdRun + game.Last().FourthRun;
+			if (IsLastFrameOfTheGame(frameNumber, game))
+			{
+				var currentFrame = game.Last();
+				return AllSkittles + currentFrame.ThirdRun + currentFrame.FourthRun;
+			}
 
-			return SkittleAmount + game[frameNumber].FirstRun + game[frameNumber].SecondRun;
+			var nextFrame = game[frameNumber];
+			return AllSkittles + nextFrame.FirstRun + nextFrame.SecondRun;
 		}
 
 		private static int SparePoints(int frameNumber, IReadOnlyList<FramePoints> game)
 		{
-			if (frameNumber == game.Count)
-				return SkittleAmount + game.Last().ThirdRun;
-			return SkittleAmount + game[frameNumber].FirstRun;
+			if (IsLastFrameOfTheGame(frameNumber, game))
+			{
+				var currentFrame = game.Last();
+				return AllSkittles + currentFrame.ThirdRun;
+			}
+
+			var nextFrame = game[frameNumber];
+			return AllSkittles + nextFrame.FirstRun;
 		}
 
 		private static int StandardPoints(int frameNumber, IReadOnlyList<FramePoints> game)
 		{
-			return game[frameNumber - 1].FirstRun + game[frameNumber - 1].SecondRun;
+			var currentFrame = game[frameNumber - 1];
+			return currentFrame.FirstRun + currentFrame.SecondRun;
+		}
+
+		private static bool IsLastFrameOfTheGame(int frameNumber, IReadOnlyCollection<FramePoints> game)
+		{
+			return frameNumber == game.Count;
 		}
 	}
 }
