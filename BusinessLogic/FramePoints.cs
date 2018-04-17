@@ -6,7 +6,7 @@
 		{
 
 		}
-		public FramePoints(int firstRun, int secondRun, int thirdRun = 0, int fourthRun = 0)
+		public FramePoints(int firstRun, int secondRun = 0, int thirdRun = 0, int fourthRun = 0)
 		{
 			FirstRun = firstRun;
 			SecondRun = secondRun;

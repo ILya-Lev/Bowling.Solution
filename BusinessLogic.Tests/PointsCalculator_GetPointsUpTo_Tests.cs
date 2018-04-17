@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace BusinessLogic.Tests
@@ -97,6 +98,20 @@ namespace BusinessLogic.Tests
 
 			points.Should().Be(19);
 		}
+		[Fact]
+		public void SpareAndNextFrame1_FullPoints()
+		{
+			var game = new List<FramePoints>
+			{
+				new FramePoints(3,7),
+				new FramePoints(3,2),
+			};
+			var calculator = new PointsCalculator(game);
+
+			var points = calculator.GetPointsUpTo(2);
+
+			points.Should().Be(18);
+		}
 
 		[Fact]
 		public void SpareAndAdditionalRuns_SumOnly3rdRun()
@@ -158,5 +173,69 @@ namespace BusinessLogic.Tests
 
 			points.Should().Be(18);
 		}
+		[InlineData(1, 30)]
+		[InlineData(2, 60)]
+		[InlineData(3, 90)]
+		[InlineData(4, 120)]
+		[InlineData(5, 150)]
+		[InlineData(6, 180)]
+		[InlineData(7, 210)]
+		[InlineData(8, 240)]
+		[InlineData(9, 270)]
+		[InlineData(10, 300)]
+		[Theory]
+		public void AllStrikes_MatchExpectations(int frameNumber, int expectedPoints)
+		{
+			var game = Enumerable.Range(1, 9).Select(n => new FramePoints(10)).ToList();
+			game.Add(new FramePoints(10, 0, 10, 10));
+			var calculator = new PointsCalculator(game);
+
+			var points = calculator.GetPointsUpTo(frameNumber);
+
+			points.Should().Be(expectedPoints);
+		}
+		[InlineData(1, 30)]
+		[InlineData(2, 60)]
+		[InlineData(3, 90)]
+		[InlineData(4, 120)]
+		[InlineData(5, 150)]
+		[InlineData(6, 180)]
+		[InlineData(7, 210)]
+		[InlineData(8, 240)]
+		[InlineData(9, 270)]
+		[InlineData(10, 299)]
+		[Theory]
+		public void AllStrikesButLast_MatchExpectations(int frameNumber, int expectedPoints)
+		{
+			var game = Enumerable.Range(1, 9).Select(n => new FramePoints(10)).ToList();
+			game.Add(new FramePoints(10, 0, 10, 9));
+			var calculator = new PointsCalculator(game);
+
+			var points = calculator.GetPointsUpTo(frameNumber);
+
+			points.Should().Be(expectedPoints);
+		}
+		[InlineData(1, 30)]
+		[InlineData(2, 60)]
+		[InlineData(3, 90)]
+		[InlineData(4, 120)]
+		[InlineData(5, 150)]
+		[InlineData(6, 180)]
+		[InlineData(7, 210)]
+		[InlineData(8, 239)]
+		[InlineData(9, 259)]
+		[InlineData(10, 270)]
+		[Theory]
+		public void AllStrikesButLastSpare_MatchExpectations(int frameNumber, int expectedPoints)
+		{
+			var game = Enumerable.Range(1, 9).Select(n => new FramePoints(10)).ToList();
+			game.Add(new FramePoints(9, 1, 1));
+			var calculator = new PointsCalculator(game);
+
+			var points = calculator.GetPointsUpTo(frameNumber);
+
+			points.Should().Be(expectedPoints);
+		}
+
 	}
 }

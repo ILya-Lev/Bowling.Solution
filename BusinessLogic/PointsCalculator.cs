@@ -62,6 +62,12 @@ namespace BusinessLogic
 			}
 
 			var nextFrame = game[frameNumber];
+			if (nextFrame.FirstRun == AllSkittles)
+			{
+				if (frameNumber < game.Count - 1)
+					return AllSkittles + nextFrame.FirstRun + game[frameNumber + 1].FirstRun;
+				return AllSkittles + nextFrame.FirstRun + nextFrame.ThirdRun;//here next frame is the last one
+			}
 			return AllSkittles + nextFrame.FirstRun + nextFrame.SecondRun;
 		}
 
