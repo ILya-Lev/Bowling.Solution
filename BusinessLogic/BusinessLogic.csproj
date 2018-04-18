@@ -40,6 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CalculationCommands\PlainStrategy.cs" />
+    <Compile Include="CalculationCommands\SpareStrategy.cs" />
+    <Compile Include="CalculationCommands\StrikeStrategy.cs" />
+    <Compile Include="CalculationCommands\PointCalculationCommand.cs" />
+    <Compile Include="PointsCalculationStrategy.cs" />
     <Compile Include="PointsCalculator.cs" />
     <Compile Include="FramePoints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
